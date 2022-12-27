@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <title>Simple Chat</title>
+    </head>
+    <body>
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="border rounded p-3" id="chat_box">
+                        <strong>Messages:</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="form-inline">
+                        <input id="input_msg" class="form-control mr-3" type="text" placeholder="Enter message">
+                        <button id="send_msg" class="btn btn-primary">Send</button>
+                        <a href="{% url 'logout' %}" class="btn btn-primary ml-3">Exit</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            let url = `ws://${window.location.host}/chat/socket/`
+            const chatSocket = new WebSocket(url)
+
+            {# receive #}
+            chatSocket.onmessage = function (ev) {
+                var data = JSON.parse(ev.data)
+                message = document.createElement('p')
+                message.textContent = `${data['username']}: ${data['message']}`
+                member = document.createElement('p')
+                member.textContent = `${data['username']}`
+                document.getElementById("chat_box").appendChild(message);
+            }
+            {# send #}
+            document.getElementById("send_msg").onclick = function (ev) {
+                var input_msg = document.getElementById("input_msg")
+                if (input_msg) {
+                    message = input_msg.value
+                    username = "{{ request.user.username }}"
+                    chatSocket.send(JSON.stringify({"message_type":"chat_msg", "message":message, "username":username}))
+                    input_msg.value = ''
+                }
+            }
+
+        </script>
+    </body>
+</html>
